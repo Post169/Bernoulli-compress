@@ -44,26 +44,36 @@ def dictWords(dataLength):
 def checkDict(data,webster,ii):
     "Input dataset building dictionary from, dictionary built so far, current"
     km = 1
-    while bitz[ii:ii+km] in webster:
+    while data[ii:ii+km] in webster:
         km += 1
-        if ii+km > len(bitz):
+        if ii+km > len(data):
             return "", km
-    return bitz[ii:ii+km], km
+    return data[ii:ii+km], km
 
 def binWords(length, howMany):
     "Creates a sequence of bit strings of a certain length"
-    return {}
+    length = int(length)
+    howMany = int(howMany)
+    for ii in range(howMany):
+        yield bin(ii)[2:].zfill(length)
 
-bitz = BernSeq(20,0.4)
-bDL = dictWords(len(bitz))
-webster = {}
-ii = 0
-while ii < bDL:
-    print(ii)
-    nextW,di = checkDict(bitz,webster,ii)
-    ii += di
-    webster[nextW] = ii
+#bitz = BernSeq(20,0.4)
+#bDL = dictWords(len(bitz))
+#wL = np.ceil(np.log2(bDL))
+#webster = {}
+#ii = 0
+#for woid in binWords(wL,bDL):
+#    if ii > len(bitz):
+#        break
+#    nextW,di = checkDict(bitz,webster,ii)
+#    ii += di
+#    webster[nextW] = woid
 
+#while ii < bDL:
+#    print(ii)
+#    nextW,di = checkDict(bitz,webster,ii)
+#    ii += di
+#    webster[nextW] = binWords(wL,bDL)
     
 #dl75 = dictWords(75)
 #dl76 = dictWords(76)
@@ -76,11 +86,15 @@ class LZ78dict(object):
     def __init__(self,data):
         datalength = len(data)
         self.dictLengthMax = dictWords(datalength)
-        self.keylength = np.ceil(np.log2(self.dictLength))
+        self.keylength = np.ceil(np.log2(self.dictLengthMax))
         bitno = 0
-        self.retsbew = {}
-        while bitno < datalength:
-            nextW,bitstep = checkDict(data,retsbew,bitno)
+        self.encodeDict = {}
+        for ward in binWords(self.keylength,self.dictLengthMax):
+            nextW,bitstep = checkDict(data,self.encodeDict,bitno)
+            if nextW == "":
+                break
             bitno += bitstep
-            self.retsbew[nextW] = bitno
-        self.dictionary = {v: k for k, v in retsbew.iteritems()}
+            self.encodeDict[nextW] = ward
+        self.decodeDict = {v: k for k, v in self.encodeDict.iteritems()}
+    
+        
