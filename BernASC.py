@@ -70,7 +70,7 @@ class LZ78dict(object):
     def __init__(self,data):
         datalength = len(data)
         self.dictLengthMax = dictWords(datalength)
-        self.keylength = np.ceil(np.log2(self.dictLengthMax))
+        self.keylength = int(np.ceil(np.log2(self.dictLengthMax)))
         bitno = 0
         self.encodeDict = {}
         for ward in binWords(self.keylength,self.dictLengthMax):
@@ -102,7 +102,7 @@ class LZ78dict(object):
             ward,di = checkDict(message,self.encodeDict,ii,building)
             kryptos += self.encodeDict[ward]
             ii += di
-            print ward
+#            print ward
             if ii > (len(message) - 10):
                 print 'getting close'
         return kryptos
@@ -110,22 +110,27 @@ class LZ78dict(object):
     def decode(self,coded):
         ii = 0
         original = ""
+        delta = self.keylength
         while ii < len(coded):
-            ward,di = checkDict(coded,self.decodeDict,ii,False)
+            ward = self.decodeDict[coded[ii:ii+delta]]
             original += ward
+            print ii,' ',ward
+            ii += delta
         return original
 
 
-# """Test the dictWord, BernSeq, __init__, __len__, and encode functions & methods"""
-# dlen128cww = 0 # put datalength needed to require 128 code words here
-# dictlen = 0 # keep track of the dictionary length here
-# while dictlen < 128:
-#     dlen128cww += 1
-#     dictlen = dictWords(dlen128cww)
-# print "To get 128 words in dict, data will be ",dlen128cww," bits long"
-# sample60 = BernSeq(dlen128cww,.6) # Bernoulli sequence to make a 128 word dict
-# print "The Bernoulli sequence is ",len(sample60)," bits long"
-# webster = LZ78dict(sample60)
-# print "The dictionary has ",len(webster)," words"
-# coded_sample60 = webster.encode(sample60)
-# print "The encoded form of the data is ",coded_sample60
+"""Test the dictWord, BernSeq, __init__, __len__, and encode functions & methods"""
+dlen128cww = 0 # put datalength needed to require 128 code words here
+dictlen = 0 # keep track of the dictionary length here
+while dictlen < 128:
+    dlen128cww += 1
+    dictlen = dictWords(dlen128cww)
+print "To get 128 words in dict, data will be ",dlen128cww," bits long"
+sample60 = BernSeq(dlen128cww,.6) # Bernoulli sequence to make a 128 word dict
+print "The Bernoulli sequence is ",len(sample60)," bits long"
+webster = LZ78dict(sample60)
+print "The dictionary has ",len(webster)," words"
+coded_sample60 = webster.encode(sample60)
+print "The encoded form of the data is ",coded_sample60
+decoded_sample60 = webster.decode(coded_sample60)
+print "It is ",decoded_sample60==sample60," that the encode and decode methods both work"
