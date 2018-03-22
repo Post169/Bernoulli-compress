@@ -4,10 +4,11 @@ Created on Wed Feb 21 14:34:38 2018
 
 @author: David
 """
-from __future__ import division
+# from __future__ import division
 import numpy as np
 
 def BernSeq(length,freq):
+    """Create a Bernoulli sequence - a random bitstring - of the given length and given frequency of 1s"""
     seq = ' '*length
     #print seq
     for ii in range(length):
@@ -21,6 +22,7 @@ def BernSeq(length,freq):
     return seq
 
 def dictWords(dataLength):
+    """Find the maximum possible number of words in a dictionary built from a bitstring of the given length"""
     from numpy import ceil
     maxLength = 1.
     sumLengths = 2.
@@ -32,18 +34,29 @@ def dictWords(dataLength):
     totalWords = 2**(maxLength+1) - 2
     extraWords = ceil(extraLength/maxLength)
     finalWords = totalWords - extraWords
-    return finalWords
+    return int(finalWords)
 
-def checkDict(data,webster,ii,cut=True):
-    "Input dataset building dictionary from, dictionary built so far, current"
+def checkDict(data,dictionary,ii,buildDict = False):
+    """Input dataset building dictionary from/encoding by dictionary, current dictionary, current character in
+    dataset, whether we want a longer word than is yet in the dictionary returned"""
+    """Start with a length of 1"""
     km = 1
-    while data[ii:ii+km] in webster:
+    length = 1
+    """Look for the longest word in the dictionary that matches the data"""
+    while data[ii:ii+km] in dictionary:
         km += 1
-        if km%5 == 0:
-            print km
-        if cut & ii+km > len(data):
+        """If we're adding new words to a dictionary, we want the final word to be longer than the last one that
+        matched, but if we're finding words in a dictionary then we want to stick to things in the dictionary"""
+        length = km - 1 + int(buildDict)
+        """What to do for the string that reaches the end of the data"""
+        if buildDict & (ii+length > len(data)):
             return "", km
-    return data[ii:ii+km], km
+        elif (not buildDict) & (ii+length == len(data)): #& (data[ii:ii+length] in dictionary):
+            return data[ii:ii+length],km
+        # if km > 10:
+        #     print "km = ",km ,", ii = ",ii,", len(dict) = ",len(webster)," building = ",buildDict
+        #     print cut & ii+km > len(data)
+    return data[ii:ii+length], length
 
 def binWords(length, howMany):
     "Creates a sequence of bit strings of a certain length"
@@ -61,25 +74,33 @@ class LZ78dict(object):
         bitno = 0
         self.encodeDict = {}
         for ward in binWords(self.keylength,self.dictLengthMax):
-            nextW,bitstep = checkDict(data,self.encodeDict,bitno)
+            buiding = True
+            nextW,bitstep = checkDict(data,self.encodeDict,bitno,buiding)
             if nextW == "":
                 break
             bitno += bitstep
             self.encodeDict[nextW] = ward
-        self.decodeDict = {v: k for k, v in self.encodeDict.iteritems()}
+        self.decodeDict = {v: k for k, v in self.encodeIter}
     def __len__(self):
         return len(self.decodeDict)
     def __repr__(self):
-        return "Encode dictionary: ",self.encodeDict,"Decode dictionary: ",\
-    self.decodeDict
+        return "Encode dictionary: ",self.encodeDict,"Decode dictionary: ",self.decodeDict
     def __str__(self):
         return repr(self)
+    @property
+    def encodeIter(self):
+        return self.encodeDict.iteritems()
     def encode(self,message):
         ii = 0
         kryptos = ""
         while ii < len(message):
-            ward,di = checkDict(message,self.encodeDict,ii,False)
-            kryptos += ward
+            building = False
+            ward,di = checkDict(message,self.encodeDict,ii,building)
+            kryptos += self.encodeDict[ward]
+            ii += di
+            print ward
+            if ii > (len(message) - 10):
+                print 'getting close'
         return kryptos
     def decode(self,coded):
         ii = 0
@@ -94,10 +115,10 @@ dictlen = 0 # keep track of the dictionary length here
 while dictlen < 128:
     dlen128cww += 1
     dictlen = dictWords(dlen128cww)
-print dlen128cww
+print "To get 128 words in dict, data will be ",dlen128cww," bits long"
 sample60 = BernSeq(dlen128cww,.6) # Bernoulli sequence to make a 128 word dict
-print len(sample60)
+print "The Bernoulli sequence is ",len(sample60)," bits long"
 webster = LZ78dict(sample60)
-print len(webster)
+print "The dictionary has ",len(webster)," words"
 coded_sample60 = webster.encode(sample60)
-print coded_sample60
+print "The encoded form of the data is ",coded_sample60
