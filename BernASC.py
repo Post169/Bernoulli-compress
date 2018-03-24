@@ -91,7 +91,7 @@ class LZ78dict(object):
         return len(self.decodeDict)
     """Give length of the dictionaries as the __repr__ and __str__"""
     def __repr__(self):
-        return "Encode & decode dictionaries of ",len(self)," entries"
+        return "Encode & decode dictionaries of ",str(len(self))," entries"
     def __str__(self):
         return repr(self)
     """Turn the encoding dictionary in to an iterable"""
@@ -103,8 +103,9 @@ class LZ78dict(object):
         ii = 0
         kryptos = ""
         while ii < len(message):
-            building = False
-            ward,di = checkDict(message,self.encodeDict,ii,building)
+            notBuilding = False
+            encDict = self.encodeDict
+            ward,di = checkDict(message,encDict,ii,notBuilding)
             kryptos += self.encodeDict[ward]
             ii += di
         return kryptos
@@ -119,20 +120,26 @@ class LZ78dict(object):
             ii += delta
         return original
 
-
 """Test the dictWord, BernSeq, __init__, __len__, encode and decode functions & methods"""
-def illustrate():
-    datlen = 0 # keep track of estimated bitstring length needed for desired dictionary size
-    dictlen = 0 # keep track of the dictionary length
-    while dictlen < 128:
-        datlen += 1
-        dictlen = dictWords(datlen)
-    print "To get 128 words in dict, data will be ",datlen," bits long"
-    sample60 = BernSeq(datlen,.6) # Bernoulli sequence to make a 128 word dict
-    print "The Bernoulli sequence is ",len(sample60)," bits long"
-    webster = LZ78dict(sample60)
-    print "The dictionary has ",len(webster)," words"
-    coded_sample60 = webster.encode(sample60)
-    print "The encoded form of the data is ",coded_sample60
-    decoded_sample60 = webster.decode(coded_sample60)
-    print "It is ",decoded_sample60==sample60," that the encode and decode methods both work"
+def demonstrate():
+    maxKeyLen = 8
+    print "Let's make a dictionary with ",maxKeyLen,"-bit keys out of a random bitstring"
+    dictLenMax = 2**maxKeyLen
+    print "How long should that bitstring be?"
+    datlen = dataSize(dictLenMax)
+    print "It should be ",datlen," bits long"
+    omega = np.random.rand(1)
+    print "Let's make it ",round(omega*100,1),"% 1's"
+    bitstring = BernSeq(datlen,omega)
+    print "The first 30 digits are ",bitstring[:30]
+    library = LZ78dict(bitstring)
+    dict1 = library.encodeDict
+    print "This dictionary has ",len(dict1),"key-value pairs"
+    coded1 = library.encode(bitstring)
+    print "It was able to compress the bitstring to ",len(coded1)," bits"
+    print "The first 30 of those are ",coded1[:30]
+    print "Now let's decode that"
+    decoded1 = library.decode(coded1)
+    print "The first 30 digits of the decoded bitstring are ",decoded1[:30]
+    matches = decoded1 == bitstring
+    print "It is ",matches," that these code operations are able to reverse each other flawlessly."
