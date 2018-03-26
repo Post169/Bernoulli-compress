@@ -1,6 +1,6 @@
 # Bernoulli-compress
 Experiments with compressing random bitstrings
-
+ 
 bernoulli_lab.py is a Python 2.7.14 module with tools intended for an experiment in compressing random bitstrings (Bernoulli sequences)  
 These tools include:  
 bern_seq, which creates Bernoulli sequences of any desired length and probability distribution  
