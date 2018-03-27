@@ -88,7 +88,7 @@ class LZ78Dict(object):
         return len(self.decode_dict)
     """Give length of the dictionaries as the __repr__ and __str__"""
     def __repr__(self):
-        return "Encode & decode dictionaries of ",str(len(self))," entries"
+        return "Encode & decode dictionaries of "+str(len(self))+" entries"
     def __str__(self):
         return repr(self)
     """Turn the encoding dictionary into encode_iter iterable property"""
