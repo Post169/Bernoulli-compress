@@ -5,6 +5,7 @@ Recreating the functionality of Matlab code developed in M.S. thesis project
 Takes bitstring, makes dictionary and both encodes and decodes by that
 dictionary; also includes functions to help utilize that, including creating 
 Bernoulli Sequences
+Run to see demonstration
 @author: David
 """
 import numpy as np
@@ -12,8 +13,10 @@ import numpy as np
 def bern_seq(length,freq1s):
     """bern_seq creates Bernoulli sequence (random bitstring) of given length
     with given freq of 1s"""
-    seq = "".join("1" if np.random.rand(1) < freq1s else "0" for _ in range(length))
-    return seq
+#    seq = "".join("1" if np.random.rand(1) < freq1s else "0" for _ in range(length))
+#    return seq
+    bseq = tuple([int(np.random.rand(1) < freq1s) for _ in range(length)])
+    return bseq
 
 def dict_words(data_length):
     """dict_words finds max possible number of words in a dictionary built from
@@ -61,23 +64,25 @@ def check_dict(data,dictionary,ii,build_dict = False):
     return data[ii:ii+length], length
 
 def bin_words(length, howMany):
-    "bin_words generates a sequence of bit strings of a certain length"
+    """bin_words generates a sequence of bit strings of a certain length"""
     length = int(length)
     howMany = int(howMany)
     for ii in range(howMany):
-        yield bin(ii)[2:].zfill(length)
+        bin_string = bin(ii)[2:].zfill(length)
+        yield tuple([int(x) for x in bin_string])
 
 class LZ78Dict(object):
     """Initialize LZ78Dict object by breaking the given data into a dictionary"""
     def __init__(self,data):
+        self._data30 = data[:30]
         data_length = len(data)
         dict_length_max = dict_words(data_length)
         self.keylength = int(np.ceil(np.log2(dict_length_max)))
         bitno = 0
         self.encode_dict = {}
         for ward in bin_words(self.keylength,dict_length_max):
-            buiding = True
-            next_w,bitstep = check_dict(data,self.encode_dict,bitno,buiding)
+            building = True
+            next_w,bitstep = check_dict(data,self.encode_dict,bitno,building)
             if next_w == "":
                 break
             bitno += bitstep
@@ -88,9 +93,9 @@ class LZ78Dict(object):
         return len(self.decode_dict)
     """Give length of the dictionaries as the __repr__ and __str__"""
     def __repr__(self):
-        return "Encode & decode dictionaries of "+str(len(self))+" entries"
+        return "LZ78Dict({self._data30[:-1]}...))".format(self=self)
     def __str__(self):
-        return repr(self)
+        return "Encode & decode dictionaries of "+str(len(self))+" entries each"
     """Turn the encoding dictionary into encode_iter iterable property"""
     @property
     def encode_iter(self):
@@ -98,7 +103,7 @@ class LZ78Dict(object):
     """encode method expresses given string in terms of encode dictionary"""
     def encode(self,message):
         ii = 0
-        kryptos = ""
+        kryptos = ()
         while ii < len(message):
             not_building = False
             enc_dict = self.encode_dict
@@ -109,7 +114,7 @@ class LZ78Dict(object):
     """decode method expresses given string in terms of decode dictionary"""
     def decode(self,coded):
         ii = 0
-        original = ""
+        original = ()
         delta = self.keylength
         while ii < len(coded):
             ward = self.decode_dict[coded[ii:ii+delta]]
@@ -122,11 +127,11 @@ if __name__ == "__main__":
     max_key_len = 8
     print "Let's make a dictionary with ",max_key_len,"-bit keys out of a random bitstring"
     dict_len_max = 2**max_key_len
-    print "How long should that bitstring be?"
+    print "How long should that bitstring be if we want max length but certainty of 8-bit keys?"
     dat_len = data_size(dict_len_max)
     print "It should be ",dat_len," bits long"
     freq1s = np.random.rand(1)
-    print "Let's make it ",round(freq1s*100,1),"% 1's"
+    print "Let's make it ",round(freq1s*100,1),"percent 1's"
     bitstring = bern_seq(dat_len,freq1s)
     print "The first 30 digits are ",bitstring[:30]
     print
