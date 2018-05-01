@@ -36,7 +36,7 @@ def dict_words(data_length):
 
 def data_size(dict_size):
     """data_size finds min bitstring length that could generate
-    dictionary of given size
+    dictionary of given size; inverse function of dict_words
     """
     dict_len = 1
     data_len = 1
@@ -47,10 +47,10 @@ def data_size(dict_size):
 
 
 def bin_words(length, howMany):
-    """bin_words generates a sequence of bit strings of a certain length"""
+    """bin_words generates a sequence of bit strings of specified length"""
     length = int(length)
     howMany = int(howMany)
-    for ii in range(howMany):
+    for ii in xrange(howMany):
         bin_string = bin(ii)[2:].zfill(length)
         yield tuple([int(x) for x in bin_string])
 
@@ -61,8 +61,8 @@ class LZ78Dict(object):
         """Create LZ78Dict object by breaking the given data into a
         dictionary
         """
-        self._data30 = data[:30]
         data_length = len(data)
+        self._data30 = data[:30]
         dict_length_max = dict_words(data_length)
         self.keylength = int(np.ceil(np.log2(dict_length_max)))
         bitno = 0
@@ -77,6 +77,7 @@ class LZ78Dict(object):
                 break
             bitno += bitstep
             self.encode_dict[next_w] = ward
+        #Turn the dictionary just created into its reverse, to decode:
         self.decode_dict = {v: k for k, v in self.encode_iter}
     
     def __len__(self):
@@ -84,7 +85,7 @@ class LZ78Dict(object):
         return len(self.decode_dict)
     
     def __repr__(self):
-        """Show how to create current instance again as __repr__"""
+        """How to create current instance again as __repr__"""
         return "LZ78Dict(({self._data30[:]}...))".format(self=self)
     
     def __str__(self):
@@ -99,7 +100,7 @@ class LZ78Dict(object):
         return self.encode_dict.iteritems()
     
     def encode(self, message):
-        """encode method expresses given string in terms of encode 
+        """encode method expresses given tuple in terms of encode 
         dictionary
         """
         ii = 0
@@ -113,7 +114,7 @@ class LZ78Dict(object):
         return kryptos
     
     def decode(self, coded):
-        """decode method expresses given string in terms of decode 
+        """decode method expresses given tuple in terms of decode 
         dictionary
         """
         ii = 0
@@ -127,21 +128,21 @@ class LZ78Dict(object):
     
     @staticmethod
     def _check_dict(data, dictionary, ii, build_dict=False):
-        """check_dict searches given data string, starting at position
-        ii, for largest matching word in given dictionary; if 
-        build_dict, goes one char farther
+        """check_dict searches given data tuple, starting at position
+        ii, for largest matching sequence in given dictionary; if 
+        build_dict, goes one element farther
         """
-        #km is string length compared to dictionary, length is string
-        #length checked for exceeding data length; only different if 
-        #build_dict
+        #km is length of tuple to be compared to dictionary; length is
+        #tuple elements checked for reaching or exceeding data length
+        #(default reaching; exceeding if build_dict)
         km = 1
         length = 1
-        #Look for the longest word in the dictionary that matches the
-        #data, from where we're starting as far on as possible
+        #Look for the longest sequence in the dictionary that matches
+        #the data, from where we're starting as far on as possible
         while data[ii:ii+km] in dictionary:
             km += 1
             length = km - 1 + int(build_dict)
-            #What to do for the string that reaches the end of the
+            #What to do for the sequence that reaches the end of the
             #data
             if build_dict & (ii+length > len(data)):
                 return "", km
