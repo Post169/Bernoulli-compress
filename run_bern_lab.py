@@ -16,23 +16,23 @@ import itertools as it
 workbook = xl.Workbook('Python heatmaps.xlsx')
 worksheet = workbook.add_worksheet()
 
-Dists = (2**-5,2**-4,2**-3,2**-2,2**-1,1-2**-2,1-2**-3,1-2**-4,1-2**-5)
-Width = len(Dists)
-Heatmap = np.zeros((Width,Width))
+dists = (2**-5,2**-4,2**-3,2**-2,2**-1,1-2**-2,1-2**-3,1-2**-4,1-2**-5)
+width = len(dists)
+heatmap = np.zeros((width,width))
 
-for IdxDict,ValDict in enumerate(Dists):
-    DictSeed = bl.bern_seq(65536,ValDict)
-    Webster = bl.LZ78Dict(DictSeed)
-    for IdxShade,ValShade in enumerate(Dists):
-        Compr = []
-        for Label in range(10):
-            Message = bl.bern_seq(512,ValShade)
-            Kryptos = Webster.encode(Message)
-            Score = len(Kryptos)
-            Compr += [Score]
-        Heatmap[IdxShade,IdxDict] = np.mean(Compr)
+for idx_dict,val_dict in enumerate(dists):
+    dict_seed = bl.bern_seq(65536,val_dict)
+    webster = bl.LZ78Dict(dict_seed)
+    for idx_shade,val_shade in enumerate(dists):
+        compr = []
+        for label in range(10):
+            message = bl.bern_seq(512,val_shade)
+            kryptos = webster.encode(message)
+            score = len(kryptos)
+            compr += [score]
+        heatmap[idx_shade,idx_dict] = np.mean(compr)
 
-for Spot in it.product(range(Width), repeat=2):
-    worksheet.write(Spot[0],Spot[1],Heatmap[Spot])
+for spot in it.product(range(width), repeat=2):
+    worksheet.write(spot[0],spot[1],heatmap[spot])
 
 workbook.close()

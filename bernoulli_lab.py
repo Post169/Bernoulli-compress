@@ -61,15 +61,14 @@ class LZ78Dict(object):
         """Create LZ78Dict object by breaking the given data into a
         dictionary
         """
-        data_length = len(data)
         self._data30 = data[:30]
-        dict_length_max = dict_words(data_length)
+        dict_length_max = dict_words(len(data))
         self.keylength = int(np.ceil(np.log2(dict_length_max)))
         bitno = 0
         self.encode_dict = {}
-        #Create a Lempel-Ziv '78 dictionary mapping equal-length code words
-        #with words of increasing length that concatenate to make the original
-        #data:
+        #Create a Lempel-Ziv '78 dictionary mapping equal-length code
+        #words with words of increasing length that concatenate to
+        #make the original data:
         for ward in bin_words(self.keylength, dict_length_max):
             building = True
             next_w,bitstep = self._check_dict(data, self.encode_dict, bitno, building)
@@ -142,8 +141,9 @@ class LZ78Dict(object):
         while data[ii:ii+km] in dictionary:
             km += 1
             length = km - 1 + int(build_dict)
-            #What to do for the sequence that reaches the end of the
-            #data
+            #When the sequence we're building reaches or passes the
+            #end of the data, what to do depends on whether we are
+            #building a new dictionary or reading from one:
             if build_dict & (ii+length > len(data)):
                 return "", km
             elif (not build_dict) & (ii+length == len(data)):
